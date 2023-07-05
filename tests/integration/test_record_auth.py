@@ -11,7 +11,7 @@ from os import environ, path
 
 class TestRecordAuthService:
     def test_create_user(self, client: PocketBase, state):
-        state.email = "%s@%s.com" % (uuid4().hex[:16], uuid4().hex[:16])
+        state.email = f"{uuid4().hex[:16]}@{uuid4().hex[:16]}.com"
         state.password = uuid4().hex
         state.user = client.collection("users").create(
             {
@@ -46,7 +46,7 @@ class TestRecordAuthService:
         mail = environ.get("TMP_EMAIL_DIR") + f"/{state.email}"
         assert path.exists(mail)
         print("START")
-        for line in open(mail).readlines():
+        for line in open(mail):
             print(line)
             if "/confirm-verification/" in line:
                 token = line.split("/confirm-verification/", 1)[1].split('"')[0]
@@ -68,12 +68,12 @@ class TestRecordAuthService:
         state.password = new_password
 
     def test_change_email(self, client: PocketBase, state):
-        new_email = "%s@%s.com" % (uuid4().hex[:16], uuid4().hex[:16])
+        new_email = f"{uuid4().hex[:16]}@{uuid4().hex[:16]}.com"
         assert client.collection("users").requestEmailChange(new_email)
         sleep(0.1)
         mail = environ.get("TMP_EMAIL_DIR") + f"/{new_email}"
         assert path.exists(mail)
-        for line in open(mail).readlines():
+        for line in open(mail):
             if "/confirm-email-change/" in line:
                 token = line.split("/confirm-email-change/", 1)[1].split('"')[0]
         assert len(token) > 10
@@ -88,7 +88,7 @@ class TestRecordAuthService:
         sleep(0.1)
         mail = environ.get("TMP_EMAIL_DIR") + f"/{state.email}"
         assert path.exists(mail)
-        for line in open(mail).readlines():
+        for line in open(mail):
             if "/confirm-password-reset/" in line:
                 token = line.split("/confirm-password-reset/", 1)[1].split('"')[0]
         assert len(token) > 10
