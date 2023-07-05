@@ -59,8 +59,7 @@ class Client:
 
     def send(self, path: str, req_config: dict[str:Any]) -> Any:
         """Sends an api http request."""
-        config = {"method": "GET"}
-        config.update(req_config)
+        config = {"method": "GET"} | req_config
         # check if Authorization header can be added
         if self.auth_store.token and (
             "headers" not in config or "Authorization" not in config["headers"]
@@ -127,7 +126,7 @@ class Client:
             quote(filename),
         ]
         result = self.build_url("/".join(parts))
-        if len(query_params) != 0:
+        if query_params:
             params: str = urlencode(query_params)
             result += "&" if "?" in result else "?"
             result += params
@@ -137,6 +136,5 @@ class Client:
         url = self.base_url
         if not self.base_url.endswith("/"):
             url += "/"
-        if path.startswith("/"):
-            path = path[1:]
+        path = path.removeprefix("/")
         return url + path
