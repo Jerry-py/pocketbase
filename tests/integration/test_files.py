@@ -11,7 +11,7 @@ class TestFileService:
     def test_init_collection(self, client: PocketBase, state):
         srv = client.collections
         # create collection
-        schema = [
+        fields = [
             {
                 "name": "title",
                 "type": "text",
@@ -21,21 +21,19 @@ class TestFileService:
                 "name": "image",
                 "type": "file",
                 "required": False,
-                "options": {
-                    "maxSelect": 3,
-                    "maxSize": 5242880,
-                    "mimeTypes": [
-                        "application/octet-stream",
-                        "text/plain",
-                    ],
-                },
+                "maxSelect": 3,
+                "maxSize": 5242880,
+                "mimeTypes": [
+                    "application/octet-stream",
+                    "text/plain",
+                ],
             },
         ]
         state.coll = srv.create(
             {
                 "name": uuid4().hex,
                 "type": "base",
-                "schema": schema,
+                "fields": fields,
             }
         )
 
@@ -57,28 +55,28 @@ class TestFileService:
             }
         )
         state.recordid = record.id
-        assert len(record.image) == 3
-        for fn in record.image:
+        assert len(record.image) == 3  # type: ignore
+        for fn in record.image:  # type: ignore
             if fn.startswith(name2):
                 break
         state.recordfn = fn
 
         rel = client.collection(state.coll.id).get_one(record.id)
-        assert len(rel.image) == 3
+        assert len(rel.image) == 3  # type: ignore
 
-        r = httpx.get(client.get_file_url(rel, fn, query_params={}))
+        r = httpx.get(client.files.get_url(rel, fn, query_params={}))
         assert r.status_code == 200
         assert r.content == bcontent
 
     def test_remove_file_from_record(self, client: PocketBase, state):
         record = client.collection(state.coll.id).get_one(state.recordid)
-        assert len(record.image) == 3
+        assert len(record.image) == 3  # type: ignore
         # delete some of the files from record but keep the file named "state.filename"
         get_record = client.collection(state.coll.id).update(
             record.id, {"image": [state.recordfn]}
         )
-        assert record.image != get_record.image
-        assert len(get_record.image) == 1
+        assert record.image != get_record.image  # type: ignore
+        assert len(get_record.image) == 1  # type: ignore
 
     def test_create_one_file_record(self, client: PocketBase, state):
         name1 = uuid4().hex
@@ -89,14 +87,14 @@ class TestFileService:
                 "image": FileUpload(name1 + ".txt", acontent, "text/plain"),
             }
         )
-        assert len(record.image) == 1
-        for fn in record.image:
+        assert len(record.image) == 1  # type: ignore
+        for fn in record.image:  # type: ignore
             assert fn.startswith(name1)
 
         rel = client.collection(state.coll.id).get_one(record.id)
-        assert len(rel.image) == 1
+        assert len(rel.image) == 1  # type: ignore
 
-        r = httpx.get(client.get_file_url(rel, rel.image[0], query_params={}))
+        r = httpx.get(client.files.get_url(rel, rel.image[0], query_params={}))  # type: ignore
         assert r.status_code == 200
         assert r.content.decode("utf-8") == acontent
 
@@ -107,7 +105,7 @@ class TestFileService:
                 "image": None,
             }
         )
-        assert len(record.image) == 0
+        assert len(record.image) == 0  # type: ignore
 
         rel = client.collection(state.coll.id).get_one(record.id)
-        assert len(rel.image) == 0
+        assert len(rel.image) == 0  # type: ignore
